@@ -12,18 +12,10 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
-import java.util.function.Supplier;
 
 public final class DriverFactory {
 
     private DriverFactory(){}
-
-    private static final Map<String,Supplier<WebDriver>> DriverCreators = Map.of(
-            "chrome", ChromeDriver::new,
-            "firefox", FirefoxDriver::new,
-            "edge", EdgeDriver::new
-    );
 
     public static WebDriver createWebDriver(){
         // Allow overriding browser via environment variable (useful in CI/K8s)
@@ -52,7 +44,9 @@ public final class DriverFactory {
                     case "chrome":
                     default: {
                         ChromeOptions opts = new ChromeOptions();
-                        if (headless) opts.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
+                        if (headless) {
+                            opts.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--window-size=1920,1080");
+                        }
                         return new RemoteWebDriver(hub, opts);
                     }
                 }
@@ -61,7 +55,25 @@ public final class DriverFactory {
             }
         }
 
-        // Local driver creation (fallback)
-        return DriverCreators.getOrDefault(browser, ChromeDriver::new).get();
+        switch (browser) {
+            case "firefox": {
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+                if (headless) firefoxOptions.addArguments("-headless");
+                return new FirefoxDriver(firefoxOptions);
+            }
+            case "edge": {
+                EdgeOptions edgeOptions = new EdgeOptions();
+                if (headless) edgeOptions.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
+                return new EdgeDriver(edgeOptions);
+            }
+            case "chrome":
+            default: {
+                ChromeOptions chromeOptions = new ChromeOptions();
+                if (headless) {
+                    chromeOptions.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--window-size=1920,1080");
+                }
+                return new ChromeDriver(chromeOptions);
+            }
+        }
     }
 }
