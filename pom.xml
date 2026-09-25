@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.ge.vernova</groupId>
+  <artifactId>Hybrid_Automation_Framework</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Hybrid_Automation_Framework</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+       <maven.compiler.source>17</maven.compiler.source>
+       <maven.compiler.target>17</maven.compiler.target>
+       <allure.version>2.29.0</allure.version>
+       <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+       <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+  </properties>
+
+  <dependencies>
+
+       <dependency>
+           <groupId>io.cucumber</groupId>
+           <artifactId>cucumber-java</artifactId>
+           <version>7.18.1</version>
+       </dependency>
+
+       <dependency>
+           <groupId>io.cucumber</groupId>
+           <artifactId>cucumber-testng</artifactId>
+           <version>7.18.1</version>
+       </dependency>
+
+       <dependency>
+           <groupId>io.qameta.allure</groupId>
+           <artifactId>allure-cucumber7-jvm</artifactId>
+           <version>${allure.version}</version>
+       </dependency>
+
+       <dependency>
+           <groupId>io.qameta.allure</groupId>
+           <artifactId>allure-testng</artifactId>
+           <version>${allure.version}</version>
+       </dependency>
+
+       <dependency>
+           <groupId>org.seleniumhq.selenium</groupId>
+           <artifactId>selenium-java</artifactId>
+           <version>4.49.0</version>
+       </dependency>
+
+       <dependency>
+           <groupId>io.cucumber</groupId>
+           <artifactId>cucumber-picocontainer</artifactId>
+           <version>7.18.1</version>
+           <scope>test</scope>
+       </dependency>
+
+       <dependency>
+           <groupId>io.rest-assured</groupId>
+           <artifactId>rest-assured</artifactId>
+           <version>5.5.6</version>
+       </dependency>
+
+       <dependency>
+           <groupId>com.fasterxml.jackson.core</groupId>
+           <artifactId>jackson-databind</artifactId>
+           <version>2.18.3</version>
+       </dependency>
+
+      <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>1.5.18</version>
+      </dependency>
+  </dependencies>
+
+  <build>
+       <plugins>
+           <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-surefire-plugin</artifactId>
+               <version>${maven.surefire.plugin.version}</version>
+               <configuration>
+                   <systemPropertyVariables>
+                       <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                   </systemPropertyVariables>
+               </configuration>
+           </plugin>
+
+           <plugin>
+               <groupId>io.qameta.allure</groupId>
+               <artifactId>allure-maven</artifactId>
+               <version>2.15.2</version>
+               <configuration>
+                   <reportVersion>${allure.version}</reportVersion>
+                   <resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+               </configuration>
+           </plugin>
+       </plugins>
+  </build>
+</project>
