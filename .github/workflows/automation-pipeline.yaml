@@ -239,6 +239,7 @@ jobs:
         with:
           sparse-checkout: |
             k8s
+            k8s-template
           sparse-checkout-cone-mode: true
 
       # ----------------------------------------------------------
