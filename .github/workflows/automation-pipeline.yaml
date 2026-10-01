@@ -234,8 +234,12 @@ jobs:
 
     steps:
 
-      - name: Checkout source
+      - name: Checkout Kubernetes manifests
         uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            k8s
+          sparse-checkout-cone-mode: true
 
       # ----------------------------------------------------------
       # Setup Minikube
@@ -281,12 +285,166 @@ jobs:
             --docker-password=${{ secrets.GITHUB_TOKEN }} \
             --dry-run=client \
             -o yaml | kubectl apply -f -
-
-      # ----------------------------------------------------------
-      # Display image
-      # ----------------------------------------------------------
-
-      - name: Display image
+          
+      - name: Prepare Kubernetes manifests
+        env:
+          IMAGE: ${{ needs.resolve-image.outputs.image }}
+          PVC_NAME: automation-results-${{ github.run_id }}
+          JOB_NAME: automation-tests-${{ github.run_id }}
         run: |
-          echo "Kubernetes will execute:"
-          echo "${{ needs.resolve-image.outputs.image }}"
+          envsubst < k8s/allure-results-pvc.yaml.template \
+            > /tmp/allure-results-pvc.yaml
+
+          envsubst < k8s/automation-tests.yaml.template \
+            > /tmp/automation-tests.yaml
+
+      - name: Verify Kubernetes manifests
+        run: |
+          echo "===== PVC ====="
+          cat /tmp/allure-results-pvc.yaml
+
+          echo ""
+          echo "===== JOB ====="
+          cat /tmp/automation-tests.yaml
+
+      - name: Create test results PVC
+        run: |
+          kubectl apply -f /tmp/allure-results-pvc.yaml
+          
+      - name: Verify PVC
+        run: |
+          kubectl get pvc -n automation
+          kubectl get pv
+          
+      - name: Create automation Job
+        run: |
+          kubectl apply -f /tmp/automation-tests.yaml
+          
+
+      - name: Verify Kubernetes Job
+        run: |
+          kubectl get jobs -n automation
+          kubectl get pods -n automation
+
+      - name: Wait for automation Job
+        run: |
+          JOB_NAME="automation-tests-${GITHUB_RUN_ID}"
+
+          set +e
+
+          kubectl wait \
+            --for=condition=complete \
+            --timeout=20m \
+            "job/${JOB_NAME}" \
+            -n automation
+
+          WAIT_STATUS=$?
+
+          echo "kubectl wait exit code: ${WAIT_STATUS}"
+
+          echo "===== Job Status ====="
+          kubectl get job "${JOB_NAME}" -n automation
+
+          echo ""
+          echo "===== Pod Status ====="
+          kubectl get pods -n automation -l "job-name=${JOB_NAME}"
+
+          echo ""
+          echo "===== Job Logs ====="
+          kubectl logs \
+            -n automation \
+            -l "job-name=${JOB_NAME}" \
+            --all-containers=true \
+            --tail=-1
+
+          if [[ ${WAIT_STATUS} -ne 0 ]]; then
+            echo "Kubernetes automation Job did not complete successfully."
+            exit 1
+          fi
+
+          echo "Kubernetes automation Job completed successfully."
+
+      - name: Collect Allure results
+        run: |
+          PVC_NAME="automation-results-${GITHUB_RUN_ID}"
+          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+          
+          cat > /tmp/allure-results-collector.yaml <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: ${COLLECTOR_NAME}
+            namespace: automation
+          spec:
+            restartPolicy: Never
+          
+            containers:
+              - name: collector
+                image: busybox:1.36
+                command:
+                  - sh
+                  - -c
+                  - |
+                    cp -R /results/. /output/
+                    echo "Allure results copied successfully."
+          
+                volumeMounts:
+                  - name: allure-results
+                    mountPath: /results
+          
+                  - name: output
+                    mountPath: /output
+          
+            volumes:
+              - name: allure-results
+                persistentVolumeClaim:
+                  claimName: ${PVC_NAME}
+          
+              - name: output
+                hostPath:
+                  path: /tmp/allure-results
+                  type: DirectoryOrCreate
+          EOF
+          
+          kubectl apply -f /tmp/allure-results-collector.yaml
+
+      - name: Wait for Allure collector
+        run: |
+          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+
+          kubectl wait \
+            --for=jsonpath='{.status.phase}'=Succeeded \
+            --timeout=2m \
+            "pod/${COLLECTOR_NAME}" \
+            -n automation
+
+      - name: Copy Allure results to GitHub runner
+        run: |
+          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+
+          mkdir -p allure-results
+
+          kubectl cp \
+            "automation/${COLLECTOR_NAME}:/output/." \
+            ./allure-results/
+
+          echo "===== Collected Allure Results ====="
+          find allure-results -type f | sort
+
+      - name: Upload Kubernetes Allure results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: k8s-allure-results
+          path: allure-results/
+          if-no-files-found: warn
+          
+      - name: Delete Allure collector
+        if: always()
+        run: |
+          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+
+          kubectl delete pod \
+            "${COLLECTOR_NAME}" \
+            -n automation \
+            --ignore-not-found
