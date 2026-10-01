@@ -28,7 +28,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/hybrid-automation
+  IMAGE_NAME: ${{ github.repository_owner }}/hybrid_automation_framework
 
 
 jobs:
