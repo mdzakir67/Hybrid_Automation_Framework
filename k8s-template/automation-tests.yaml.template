@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: __JOB_NAME__
+  namespace: automation
+
+spec:
+  backoffLimit: 0
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        - name: automation-tests
+          image: __IMAGE__
+          imagePullPolicy: Always
+
+          env:
+            - name: ALLURE_RESULTS_DIR
+              value: "/results"
+
+          volumeMounts:
+            - name: allure-results
+              mountPath: /results
+
+      volumes:
+        - name: allure-results
+          persistentVolumeClaim:
+            claimName: __PVC_NAME__
