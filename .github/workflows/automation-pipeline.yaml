@@ -292,10 +292,10 @@ jobs:
           PVC_NAME: automation-results-${{ github.run_id }}
           JOB_NAME: automation-tests-${{ github.run_id }}
         run: |
-          envsubst < k8s/allure-results-pvc.yaml.template \
+          envsubst < k8s-template/allure-results-pvc.yaml.template \
             > /tmp/allure-results-pvc.yaml
 
-          envsubst < k8s/automation-tests.yaml.template \
+          envsubst < k8s-template/automation-tests.yaml.template \
             > /tmp/automation-tests.yaml
 
       - name: Verify Kubernetes manifests
