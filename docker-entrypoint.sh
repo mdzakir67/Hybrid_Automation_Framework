@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Entry point for running tests and generating Allure artifacts
 ALLURE_DIR=${ALLURE_RESULTS_DIR:-/results}
