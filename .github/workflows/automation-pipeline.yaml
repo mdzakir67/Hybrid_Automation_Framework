@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: runner-run-results
-          path: target
+          path: target/
           if-no-files-found: warn
 
   # ============================================================
@@ -207,10 +207,6 @@ jobs:
           echo "image_tag=[${{ github.event.inputs.image_tag }}]"
           echo "runner-tests=[${{ needs.runner-tests.result }}]"
           echo "build-image=[${{ needs.build-image.result }}]"
-
-  # ============================================================
-  # 4. KUBERNETES EXECUTION
-  # ============================================================
 
   # ============================================================
   # 4. KUBERNETES EXECUTION
