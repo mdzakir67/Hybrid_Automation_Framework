@@ -427,7 +427,7 @@ jobs:
           COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
 
           kubectl wait \
-            --for=jsonpath='{.status.phase}'=Succeeded \
+            --for=jsonpath='{.status.phase}'=Running \
             --timeout=2m \
             "pod/${COLLECTOR_NAME}" \
             -n automation
