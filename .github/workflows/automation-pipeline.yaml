@@ -282,6 +282,23 @@ jobs:
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
+      - name: Verify checkout
+        run: |
+          echo "Current directory:"
+          pwd
+      
+          echo ""
+          echo "Repository contents:"
+          ls -la
+      
+          echo ""
+          echo "k8s-template:"
+          ls -la k8s-template
+      
+          echo ""
+          echo "k8s:"
+          ls -la k8s
+
       - name: Prepare Kubernetes manifests
         env:
           IMAGE: ${{ needs.resolve-image.outputs.image }}
