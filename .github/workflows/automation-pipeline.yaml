@@ -232,6 +232,14 @@ jobs:
     needs: resolve-image
     runs-on: ubuntu-latest
 
+    if: |
+      github.event_name == 'push' ||
+      inputs.execution_mode == 'full' ||
+      (
+        inputs.execution_mode == 'k8s-only' &&
+        inputs.image_tag != ''
+      )
+
     steps:
 
       - name: Checkout Kubernetes manifests
