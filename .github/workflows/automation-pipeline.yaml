@@ -400,6 +400,7 @@ jobs:
                   - |
                     cp -R /results/. /output/
                     echo "Allure results copied successfully."
+                    sleep 120
           
                 volumeMounts:
                   - name: allure-results
