@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 
 metadata:
-  name: __PVC_NAME__
+  name: ${PVC_NAME}
   namespace: automation
 
 spec:
