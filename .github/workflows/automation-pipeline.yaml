@@ -597,7 +597,7 @@ jobs:
           if [[ "${{ needs.runner-tests.result }}" != "skipped" ]]; then
             cat >> pages/index.html <<'EOF'
               <li>
-                <a href="./runner/">
+                <a href="./runner/allure-maven.html">
                   Runner Allure Report
                 </a>
               </li>
@@ -607,7 +607,7 @@ jobs:
           if [[ "${{ needs.k8s-tests.result }}" != "skipped" ]]; then
             cat >> pages/index.html <<'EOF'
               <li>
-                <a href="./kubernetes/">
+                <a href="./kubernetes/allure-maven.html">
                   Kubernetes Allure Report
                 </a>
               </li>
