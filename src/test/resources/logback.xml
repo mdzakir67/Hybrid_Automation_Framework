@@ -2,7 +2,7 @@
 
 <configuration>
 
-    <property name="LOG_DIR" value="target/logs"/>
+    <property name="LOG_DIR" value="${logs.results.directory:-target/scenario-logs}"/>
 
     <!-- Console logging -->
     <appender name="CONSOLE"

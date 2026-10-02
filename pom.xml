@@ -17,6 +17,7 @@
        <allure.version>2.29.0</allure.version>
        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+       <logs.results.directory>${project.build.directory}/scenario-logs</logs.results.directory>
   </properties>
 
   <dependencies>
@@ -86,6 +87,7 @@
                <configuration>
                    <systemPropertyVariables>
                        <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                       <logs.results.directory>${logs.results.directory}</logs.results.directory>
                    </systemPropertyVariables>
                </configuration>
            </plugin>

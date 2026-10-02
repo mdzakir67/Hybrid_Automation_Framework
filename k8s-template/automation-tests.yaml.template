@@ -22,13 +22,21 @@ spec:
 
           env:
             - name: ALLURE_RESULTS_DIR
-              value: "/results"
+              value: "target/allure-results"
+
+            - name: LOGS_RESULTS_DIR
+              value: "target/scenario-logs"
 
           volumeMounts:
             - name: allure-results
-              mountPath: /results
+              mountPath: target/allure-results
+            - name: scenario-logs
+              mountPath: target/scenario-logs
 
       volumes:
         - name: allure-results
+          persistentVolumeClaim:
+            claimName: ${PVC_NAME}
+        - name: scenario-logs
           persistentVolumeClaim:
             claimName: ${PVC_NAME}

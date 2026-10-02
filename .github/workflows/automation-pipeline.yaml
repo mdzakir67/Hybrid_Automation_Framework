@@ -67,7 +67,7 @@ jobs:
       - name: Run automation tests
         id: test_status
         run: |
-          mvn clean test -Denv=qa
+          mvn -B -Dallure.results.directory=target/allure-results -Dlogs.results.directory=target/scenario-logs clean test
 
       - name: Upload Cucumber report
         if: always()
@@ -90,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: runner-scenario-logs
-          path: target/logs/
+          path: target/scenario-logs/
           if-no-files-found: warn
 
 
@@ -316,8 +316,8 @@ jobs:
           PVC_NAME: automation-results-${{ github.run_id }}
           JOB_NAME: automation-tests-${{ github.run_id }}
         run: |
-          envsubst < k8s-template/allure-results-pvc.yaml.template \
-            > /tmp/allure-results-pvc.yaml
+          envsubst < k8s-template/run-results.yaml.template \
+            > /tmp/run-results-pvc.yaml
 
           envsubst < k8s-template/automation-tests.yaml.template \
             > /tmp/automation-tests.yaml
@@ -325,7 +325,7 @@ jobs:
       - name: Verify Kubernetes manifests
         run: |
           echo "===== PVC ====="
-          cat /tmp/allure-results-pvc.yaml
+          cat /tmp/run-results-pvc.yaml
 
           echo ""
           echo "===== JOB ====="
@@ -409,13 +409,13 @@ jobs:
                   - sh
                   - -c
                   - |
-                    cp -R /results/. /output/
-                    echo "Allure results copied successfully."
+                    cp -R target/. /output/
+                    echo "Copied Target Folder Successfully"
                     sleep 120
           
                 volumeMounts:
-                  - name: allure-results
-                    mountPath: /results
+                  - name: results
+                    mountPath: target
           
                   - name: output
                     mountPath: /output
