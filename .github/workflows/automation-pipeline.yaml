@@ -548,7 +548,7 @@ jobs:
         if: needs.runner-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=target/runner-allure-results
+            -Dallure.results.directory=runner-allure-results
 
           mkdir -p pages/runner
           cp -R target/site/allure-maven-plugin/. pages/runner/
@@ -561,7 +561,7 @@ jobs:
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=target/k8s-allure-results
+            -Dallure.results.directory=k8s-allure-results
 
           mkdir -p pages/kubernetes
           cp -R target/site/allure-maven-plugin/. pages/kubernetes/
