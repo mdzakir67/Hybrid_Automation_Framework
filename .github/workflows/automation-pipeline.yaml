@@ -218,6 +218,13 @@ jobs:
           echo "${IMAGE}"
 
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+      - name: Debug workflow inputs
+        run: |
+          echo "event_name=[${{ github.event_name }}]"
+          echo "execution_mode=[${{ github.event.inputs.execution_mode }}]"
+          echo "image_tag=[${{ github.event.inputs.image_tag }}]"
+          echo "runner-tests=[${{ needs.runner-tests.result }}]"
+          echo "build-image=[${{ needs.build-image.result }}]"
 
   # ============================================================
   # 4. KUBERNETES EXECUTION
