@@ -539,7 +539,7 @@ jobs:
         if: needs.runner-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=runner-run-results/allure-results
+            -Dallure.results.directory=runner-run-results/allure-results \
             -Dallure.report.directory=target/site/allure-runner
 
           mkdir -p pages/runner
@@ -553,7 +553,7 @@ jobs:
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=k8s-run-results/allure-results
+            -Dallure.results.directory=k8s-run-results/allure-results \
             -Dallure.report.directory=target/site/allure-kubernetes
 
           mkdir -p pages/kubernetes
