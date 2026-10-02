@@ -542,7 +542,8 @@ jobs:
             -Dallure.results.directory=runner-run-results/allure-results \
             -Dallure.report.directory=target/site/allure-runner
           ls -ltr .
-          ls -ltr /target 
+          ls -ltr target 
+          ls -ltr target/site
           mkdir -p pages/runner
           cp -R target/site/allure-runner/. pages/runner/
 
