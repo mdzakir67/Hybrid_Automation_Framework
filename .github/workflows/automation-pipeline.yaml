@@ -232,10 +232,19 @@ jobs:
     needs: resolve-image
     runs-on: ubuntu-latest
 
-    if: |   
-      github.event_name == 'push' ||   github.event.inputs.execution_mode == 'full' ||   
-      ( github.event_name == 'workflow_dispatch' && github.event.inputs.execution_mode == 'k8s-only' && github.event.inputs.image_tag != '')
-
+    if: |
+      always() &&
+      needs.resolve-image.result == 'success' &&
+      (
+        github.event_name == 'push' ||
+        github.event.inputs.execution_mode == 'full' ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.execution_mode == 'k8s-only' &&
+          github.event.inputs.image_tag != ''
+        )
+      )
+      
     steps:
 
       - name: Checkout Kubernetes manifests
