@@ -46,10 +46,10 @@ jobs:
       (
         github.event_name == 'workflow_dispatch' &&
         (
-          inputs.execution_mode == 'full' ||
+          github.event.inputs.execution_mode == 'full' ||
           (
-            inputs.execution_mode == 'k8s-only' &&
-            inputs.image_tag != ''
+            github.event.inputs.execution_mode == 'k8s-only' &&
+            github.event.inputs.image_tag != ''
           )
         )
       )
@@ -227,6 +227,10 @@ jobs:
           echo "${IMAGE}"
 
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+  # ============================================================
+  # 4. KUBERNETES EXECUTION
+  # ============================================================
 
   # ============================================================
   # 4. KUBERNETES EXECUTION
