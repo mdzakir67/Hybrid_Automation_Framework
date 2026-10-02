@@ -22,16 +22,16 @@ spec:
 
           env:
             - name: ALLURE_RESULTS_DIR
-              value: "target/allure-results"
+              value: "/workspace/target/allure-results"
 
             - name: LOGS_RESULTS_DIR
-              value: "target/scenario-logs"
+              value: "/workspace/target/scenario-logs"
 
           volumeMounts:
             - name: allure-results
-              mountPath: target/allure-results
+              mountPath: /workspace/target/allure-results
             - name: scenario-logs
-              mountPath: target/scenario-logs
+              mountPath: /workspace/target/scenario-logs
 
       volumes:
         - name: allure-results
