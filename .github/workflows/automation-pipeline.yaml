@@ -532,7 +532,7 @@ jobs:
           path: target/k8s-run-results
 
       # ----------------------------------------------------------
-      # Generate Runner Allure report
+      # Generate Runner Results
       # ----------------------------------------------------------
 
       - name: Generate Runner Allure report
@@ -545,8 +545,14 @@ jobs:
           mkdir -p pages/runner
           cp -R target/site/allure-runner/. pages/runner/
 
+      - name: Scenario Logs for Runner
+        if: needs.runner-tests.result != 'skipped'
+        run: |
+          mkdir -p pages/runner-scenario-logs
+          cp -R target/runner-run-results/scenario-logs/. pages/runner-scenario-logs
+
       # ----------------------------------------------------------
-      # Generate Kubernetes Allure report
+      # Generate Kubernetes Runner Results
       # ----------------------------------------------------------
 
       - name: Generate Kubernetes Allure report
@@ -558,6 +564,12 @@ jobs:
 
           mkdir -p pages/kubernetes
           cp -R target/site/allure-kubernetes/. pages/kubernetes/
+
+      - name: Scenario Logs for Runner
+        if: needs.k8s-tests.result != 'skipped'
+        run: |
+          mkdir -p pages/k8s-scenario-logs
+          cp -R target/k8s-run-results/scenario-logs/. pages/k8s-scenario-logs
 
       # ----------------------------------------------------------
       # Create Pages landing page
@@ -593,6 +605,9 @@ jobs:
                 <a href="./runner/">
                   Runner Allure Report
                 </a>
+                <a href="./runner-scenario-logs/">
+                  Runner Scenario Logs
+                </a>
               </li>
           EOF
           fi
@@ -602,6 +617,9 @@ jobs:
               <li>
                 <a href="./kubernetes/">
                   Kubernetes Allure Report
+                </a>
+                <a href="./k8s-scenario-logs/">
+                  Kubernetes Scenario Logs
                 </a>
               </li>
           EOF
