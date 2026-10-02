@@ -1,13 +1,10 @@
 apiVersion: batch/v1
 kind: Job
-
 metadata:
   name: ${JOB_NAME}
   namespace: automation
-
 spec:
   backoffLimit: 0
-
   template:
     spec:
       restartPolicy: Never
@@ -22,21 +19,16 @@ spec:
 
           env:
             - name: ALLURE_RESULTS_DIR
-              value: "/workspace/target/allure-results"
+              value: "/results/allure"
 
             - name: LOGS_RESULTS_DIR
-              value: "/workspace/target/scenario-logs"
+              value: "/results/logs"
 
           volumeMounts:
-            - name: allure-results
-              mountPath: /workspace/target/allure-results
-            - name: scenario-logs
-              mountPath: /workspace/target/scenario-logs
+            - name: test-results
+              mountPath: /results
 
       volumes:
-        - name: allure-results
-          persistentVolumeClaim:
-            claimName: ${PVC_NAME}
-        - name: scenario-logs
+        - name: test-results
           persistentVolumeClaim:
             claimName: ${PVC_NAME}

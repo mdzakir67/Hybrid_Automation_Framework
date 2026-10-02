@@ -396,19 +396,19 @@ jobs:
                   - sh
                   - -c
                   - |
-                    cp -R target/. /output/
+                    cp -R /results/. /output/
                     echo "Copied Target Folder Successfully"
                     sleep 120
           
                 volumeMounts:
-                  - name: results
-                    mountPath: target
+                  - name: test-results
+                    mountPath: /results
           
                   - name: output
                     mountPath: /output
           
             volumes:
-              - name: results
+              - name: test-results
                 persistentVolumeClaim:
                   claimName: ${PVC_NAME}
           
@@ -434,7 +434,7 @@ jobs:
         run: |
           COLLECTOR_NAME="run-results-collector-${GITHUB_RUN_ID}"
 
-          mkdir -p allure-results
+          mkdir -p run-results
 
           kubectl cp \
             "automation/${COLLECTOR_NAME}:/output/." \
@@ -558,7 +558,7 @@ jobs:
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=k8s-run-results/allure-results \
+            -Dallure.results.directory=k8s-run-results/allure \
             -Dallure.report.directory=target/site/allure-kubernetes
 
           mkdir -p pages/kubernetes
@@ -568,7 +568,7 @@ jobs:
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mkdir -p pages/k8s-scenario-logs
-          cp -R target/k8s-run-results/scenario-logs/. pages/k8s-scenario-logs
+          cp -R target/k8s-run-results/logs/. pages/k8s-scenario-logs
 
       # ----------------------------------------------------------
       # Create Pages landing page
