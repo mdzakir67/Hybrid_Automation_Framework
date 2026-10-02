@@ -543,7 +543,7 @@ jobs:
             -Dallure.report.directory=target/site/allure-runner
           ls -ltr .
           ls -ltr target 
-          ls -ltr target/site
+          ls -ltr target/runner-run-results
           mkdir -p pages/runner
           cp -R target/site/allure-runner/. pages/runner/
 
@@ -551,6 +551,7 @@ jobs:
         if: needs.runner-tests.result != 'skipped'
         run: |
           mkdir -p pages/runner-scenario-logs
+          ls -ltr target/runner-run-results/scenario-logs
           cp -R target/runner-run-results/scenario-logs/. pages/runner-scenario-logs
 
       # ----------------------------------------------------------
