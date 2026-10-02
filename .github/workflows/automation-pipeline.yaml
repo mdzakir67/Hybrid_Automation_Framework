@@ -69,13 +69,6 @@ jobs:
         run: |
           mvn clean test -Denv=qa
 
-
-      - name: Generate Allure report
-        if: always()
-        run: |
-          mvn allure:report
-
-
       - name: Upload Cucumber report
         if: always()
         uses: actions/upload-artifact@v7
@@ -84,7 +77,6 @@ jobs:
           path: target/cucumber-report.html
           if-no-files-found: warn
 
-
       - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v7
@@ -92,7 +84,6 @@ jobs:
           name: runner-allure-results
           path: target/allure-results/
           if-no-files-found: warn
-
 
       - name: Upload scenario logs
         if: always()
@@ -251,7 +242,7 @@ jobs:
           github.event.inputs.image_tag != ''
         )
       )
-      
+
     steps:
 
       - name: Checkout Kubernetes manifests
@@ -482,3 +473,179 @@ jobs:
             "${COLLECTOR_NAME}" \
             -n automation \
             --ignore-not-found
+          
+          
+          
+
+
+  # ============================================================
+  # 5. BUILD GITHUB PAGES REPORT
+  # ============================================================
+
+  build-pages:
+    name: Build GitHub Pages Report
+
+    needs:
+      - runner-tests
+      - k8s-tests
+
+    if: |
+      always() &&
+      (
+        needs.runner-tests.result != 'skipped' ||
+        needs.k8s-tests.result != 'skipped'
+      )
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ----------------------------------------------------------
+      # Checkout source
+      # ----------------------------------------------------------
+
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      # ----------------------------------------------------------
+      # Setup Java
+      # ----------------------------------------------------------
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # ----------------------------------------------------------
+      # Download Runner Allure results
+      # ----------------------------------------------------------
+
+      - name: Download Runner Allure results
+        if: needs.runner-tests.result != 'skipped'
+        uses: actions/download-artifact@v8
+        with:
+          name: runner-allure-results
+          path: target/runner-allure-results
+
+      # ----------------------------------------------------------
+      # Download Kubernetes Allure results
+      # ----------------------------------------------------------
+
+      - name: Download Kubernetes Allure results
+        if: needs.k8s-tests.result != 'skipped'
+        uses: actions/download-artifact@v8
+        with:
+          name: k8s-allure-results
+          path: target/k8s-allure-results
+
+      # ----------------------------------------------------------
+      # Generate Runner Allure report
+      # ----------------------------------------------------------
+
+      - name: Generate Runner Allure report
+        if: needs.runner-tests.result != 'skipped'
+        run: |
+          mvn -B allure:report \
+            -Dallure.results.directory=target/runner-allure-results
+
+          mkdir -p pages/runner
+          cp -R target/site/allure-maven-plugin/. pages/runner/
+
+      # ----------------------------------------------------------
+      # Generate Kubernetes Allure report
+      # ----------------------------------------------------------
+
+      - name: Generate Kubernetes Allure report
+        if: needs.k8s-tests.result != 'skipped'
+        run: |
+          mvn -B allure:report \
+            -Dallure.results.directory=target/k8s-allure-results
+
+          mkdir -p pages/kubernetes
+          cp -R target/site/allure-maven-plugin/. pages/kubernetes/
+
+      # ----------------------------------------------------------
+      # Create Pages landing page
+      # ----------------------------------------------------------
+
+      - name: Create Pages landing page
+        run: |
+          mkdir -p pages
+
+          cat > pages/index.html <<EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Automation Test Reports</title>
+          </head>
+
+          <body>
+
+            <h1>Automation Test Reports</h1>
+
+            <p>Latest GitHub Actions Run: ${GITHUB_RUN_NUMBER}</p>
+
+            <h2>Reports</h2>
+
+            <ul>
+          EOF
+
+          if [[ "${{ needs.runner-tests.result }}" != "skipped" ]]; then
+            cat >> pages/index.html <<'EOF'
+              <li>
+                <a href="./runner/">
+                  Runner Allure Report
+                </a>
+              </li>
+          EOF
+          fi
+
+          if [[ "${{ needs.k8s-tests.result }}" != "skipped" ]]; then
+            cat >> pages/index.html <<'EOF'
+              <li>
+                <a href="./kubernetes/">
+                  Kubernetes Allure Report
+                </a>
+              </li>
+          EOF
+          fi
+
+          cat >> pages/index.html <<'EOF'
+            </ul>
+
+          </body>
+          </html>
+          EOF
+
+      # ----------------------------------------------------------
+      # Verify Pages content
+      # ----------------------------------------------------------
+
+      - name: Verify Pages content
+        run: |
+          echo "===== Pages structure ====="
+          find pages -maxdepth 2 -type f | sort
+
+          echo ""
+          echo "===== Pages size ====="
+          du -sh pages
+
+      # ----------------------------------------------------------
+      # Configure GitHub Pages
+      # ----------------------------------------------------------
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # ----------------------------------------------------------
+      # Upload Pages artifact
+      # ----------------------------------------------------------
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages
