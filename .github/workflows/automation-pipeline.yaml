@@ -540,9 +540,10 @@ jobs:
         run: |
           mvn -B allure:report \
             -Dallure.results.directory=runner-run-results/allure-results
+            -Dallure.report.directory=target/site/allure-runner
 
           mkdir -p pages/runner
-          cp -R target/site/allure-maven-plugin/. pages/runner/
+          cp -R target/site/allure-runner/. pages/runner/
 
       # ----------------------------------------------------------
       # Generate Kubernetes Allure report
@@ -553,9 +554,10 @@ jobs:
         run: |
           mvn -B allure:report \
             -Dallure.results.directory=k8s-run-results/allure-results
+            -Dallure.report.directory=target/site/allure-kubernetes
 
           mkdir -p pages/kubernetes
-          cp -R target/site/allure-maven-plugin/. pages/kubernetes/
+          cp -R target/site/allure-kubernetes/. pages/kubernetes/
 
       # ----------------------------------------------------------
       # Create Pages landing page
