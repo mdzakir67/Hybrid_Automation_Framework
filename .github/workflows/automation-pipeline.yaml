@@ -77,22 +77,13 @@ jobs:
           path: target/cucumber-report.html
           if-no-files-found: warn
 
-      - name: Upload Allure results
+      - name: Upload Run Results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: runner-allure-results
-          path: target/allure-results/
+          name: runner-run-results
+          path: target
           if-no-files-found: warn
-
-      - name: Upload scenario logs
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: runner-scenario-logs
-          path: target/scenario-logs/
-          if-no-files-found: warn
-
 
   # ============================================================
   # 2. BUILD + PUSH DOCKER IMAGE
@@ -316,7 +307,7 @@ jobs:
           PVC_NAME: automation-results-${{ github.run_id }}
           JOB_NAME: automation-tests-${{ github.run_id }}
         run: |
-          envsubst < k8s-template/run-results.yaml.template \
+          envsubst < k8s-template/run-results-pvc.yaml.template \
             > /tmp/run-results-pvc.yaml
 
           envsubst < k8s-template/automation-tests.yaml.template \
@@ -333,7 +324,7 @@ jobs:
 
       - name: Create test results PVC
         run: |
-          kubectl apply -f /tmp/allure-results-pvc.yaml
+          kubectl apply -f /tmp/run-results-pvc.yaml
 
       - name: Verify PVC
         run: |
@@ -388,12 +379,12 @@ jobs:
 
           echo "Kubernetes automation Job completed successfully."
 
-      - name: Collect Allure results
+      - name: Collect Run Results
         run: |
           PVC_NAME="automation-results-${GITHUB_RUN_ID}"
-          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+          COLLECTOR_NAME="run-results-collector-${GITHUB_RUN_ID}"
           
-          cat > /tmp/allure-results-collector.yaml <<EOF
+          cat > /tmp/run-results-collector.yaml <<EOF
           apiVersion: v1
           kind: Pod
           metadata:
@@ -421,21 +412,21 @@ jobs:
                     mountPath: /output
           
             volumes:
-              - name: allure-results
+              - name: results
                 persistentVolumeClaim:
                   claimName: ${PVC_NAME}
           
               - name: output
                 hostPath:
-                  path: /tmp/allure-results
+                  path: /tmp
                   type: DirectoryOrCreate
           EOF
           
-          kubectl apply -f /tmp/allure-results-collector.yaml
+          kubectl apply -f /tmp/run-results-collector.yaml
 
-      - name: Wait for Allure collector
+      - name: Wait for Run results collector
         run: |
-          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+          COLLECTOR_NAME="run-results-collector-${GITHUB_RUN_ID}"
 
           kubectl wait \
             --for=jsonpath='{.status.phase}'=Running \
@@ -443,31 +434,31 @@ jobs:
             "pod/${COLLECTOR_NAME}" \
             -n automation
 
-      - name: Copy Allure results to GitHub runner
+      - name: Copy Run results to GitHub runner
         run: |
-          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+          COLLECTOR_NAME="run-results-collector-${GITHUB_RUN_ID}"
 
           mkdir -p allure-results
 
           kubectl cp \
             "automation/${COLLECTOR_NAME}:/output/." \
-            ./allure-results/
+            ./run-results
 
           echo "===== Collected Allure Results ====="
-          find allure-results -type f | sort
+          find run-results -type f | sort
 
-      - name: Upload Kubernetes Allure results
+      - name: Upload Kubernetes Run Results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: k8s-allure-results
-          path: allure-results/
+          name: k8s-run-results
+          path: run-results/
           if-no-files-found: warn
 
-      - name: Delete Allure collector
+      - name: Delete Run results collector
         if: always()
         run: |
-          COLLECTOR_NAME="allure-results-collector-${GITHUB_RUN_ID}"
+          COLLECTOR_NAME="run-results-collector-${GITHUB_RUN_ID}"
 
           kubectl delete pod \
             "${COLLECTOR_NAME}" \
@@ -522,23 +513,23 @@ jobs:
       # Download Runner Allure results
       # ----------------------------------------------------------
 
-      - name: Download Runner Allure results
+      - name: Download Runner Results
         if: needs.runner-tests.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
-          name: runner-allure-results
-          path: target/runner-allure-results
+          name: runner-run-results
+          path: target/runner-run-results
 
       # ----------------------------------------------------------
       # Download Kubernetes Allure results
       # ----------------------------------------------------------
 
-      - name: Download Kubernetes Allure results
+      - name: Download Kubernetes Run Results
         if: needs.k8s-tests.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
-          name: k8s-allure-results
-          path: target/k8s-allure-results
+          name: k8s-run-results
+          path: target/k8s-run-results
 
       # ----------------------------------------------------------
       # Generate Runner Allure report
@@ -548,7 +539,7 @@ jobs:
         if: needs.runner-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=runner-allure-results
+            -Dallure.results.directory=runner-run-results/allure-results
 
           mkdir -p pages/runner
           cp -R target/site/allure-maven-plugin/. pages/runner/
@@ -561,7 +552,7 @@ jobs:
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mvn -B allure:report \
-            -Dallure.results.directory=k8s-allure-results
+            -Dallure.results.directory=k8s-run-results/allure-results
 
           mkdir -p pages/kubernetes
           cp -R target/site/allure-maven-plugin/. pages/kubernetes/
