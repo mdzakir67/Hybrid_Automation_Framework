@@ -541,7 +541,7 @@ jobs:
           mvn -B allure:report \
             -Dallure.results.directory=runner-run-results/allure-results \
             -Dallure.report.directory=target/site/allure-runner
-
+          ls -ltr .
           mkdir -p pages/runner
           cp -R target/site/allure-runner/. pages/runner/
 
