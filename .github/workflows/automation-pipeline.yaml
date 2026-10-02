@@ -236,6 +236,7 @@ jobs:
       github.event_name == 'push' ||
       inputs.execution_mode == 'full' ||
       (
+        github.event_name == 'workflow_dispatch' &&
         inputs.execution_mode == 'k8s-only' &&
         inputs.image_tag != ''
       )
