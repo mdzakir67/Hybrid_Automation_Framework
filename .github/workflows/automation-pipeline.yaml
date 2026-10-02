@@ -547,8 +547,36 @@ jobs:
         if: needs.runner-tests.result != 'skipped'
         run: |
           mkdir -p pages/runner-scenario-logs
-          ls -ltr target/runner-run-results/scenario-logs
-          cp -R target/runner-run-results/scenario-logs/. pages/runner-scenario-logs
+
+          cp -R target/runner-run-results/scenario-logs/. \
+            pages/runner-scenario-logs/
+
+          cat > pages/runner-scenario-logs/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Runner Scenario Logs</title>
+          </head>
+          <body>
+            <h1>Runner Scenario Logs</h1>
+            <ul>
+          EOF
+
+          for file in pages/runner-scenario-logs/*.log; do
+            if [[ -f "$file" ]]; then
+              filename=$(basename "$file")
+              echo "<li><a href=\"./${filename}\">${filename}</a></li>" \
+                >> pages/runner-scenario-logs/index.html
+            fi
+          done
+
+          cat >> pages/runner-scenario-logs/index.html <<'EOF'
+            </ul>
+          </body>
+          </html>
+          EOF
 
       # ----------------------------------------------------------
       # Generate Kubernetes Runner Results
@@ -564,11 +592,40 @@ jobs:
           mkdir -p pages/kubernetes
           cp -R target/site/allure-kubernetes/. pages/kubernetes/
 
-      - name: Scenario Logs for Runner
+      - name: Scenario Logs for Kubernetes
         if: needs.k8s-tests.result != 'skipped'
         run: |
           mkdir -p pages/k8s-scenario-logs
-          cp -R target/k8s-run-results/logs/. pages/k8s-scenario-logs
+
+          cp -R target/k8s-run-results/logs/. \
+            pages/k8s-scenario-logs/
+
+          cat > pages/k8s-scenario-logs/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Kubernetes Scenario Logs</title>
+          </head>
+          <body>
+            <h1>Kubernetes Scenario Logs</h1>
+            <ul>
+          EOF
+
+          for file in pages/k8s-scenario-logs/*.log; do
+            if [[ -f "$file" ]]; then
+              filename=$(basename "$file")
+              echo "<li><a href=\"./${filename}\">${filename}</a></li>" \
+                >> pages/k8s-scenario-logs/index.html
+            fi
+          done
+
+          cat >> pages/k8s-scenario-logs/index.html <<'EOF'
+            </ul>
+          </body>
+          </html>
+          EOF
 
       # ----------------------------------------------------------
       # Create Pages landing page
