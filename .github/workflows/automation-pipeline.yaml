@@ -236,11 +236,6 @@ jobs:
 
       - name: Checkout Kubernetes manifests
         uses: actions/checkout@v6
-        with:
-          sparse-checkout: |
-            k8s
-            k8s-template
-          sparse-checkout-cone-mode: true
 
       # ----------------------------------------------------------
       # Setup Minikube
